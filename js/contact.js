@@ -163,8 +163,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Handle form submission with feedback
-  const handleFormSubmit = (e) => {
+  // Handle form submission with Web3Forms
+  const handleFormSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
     const form = e.target;
     const submitBtn = form.querySelector(".submit-btn"); // Submit button
@@ -172,16 +172,41 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.style.transform = "translateY(-1px)"; // Slight button press effect
     submitBtn.textContent = "Sending..."; // Update button text
     submitBtn.disabled = true; // Disable button
-    setTimeout(() => {
-      form.reset(); // Reset form
-      submitBtn.textContent = "Send Message"; // Restore button text
-      submitBtn.disabled = false; // Enable button
-      submitBtn.style.transform = ""; // Reset button style
-      successMessage.classList.add("show"); // Show success message
+
+    try {
+      const formData = new FormData(form);
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        form.reset(); // Reset form
+        submitBtn.textContent = "Send Message"; // Restore button text
+        submitBtn.disabled = false; // Enable button
+        submitBtn.style.transform = ""; // Reset button style
+        successMessage.classList.add("show"); // Show success message
+        setTimeout(() => {
+          successMessage.classList.remove("show"); // Hide after 5s
+        }, 5000);
+      } else {
+        submitBtn.textContent = "Failed! Try Again";
+        submitBtn.disabled = false;
+        submitBtn.style.transform = "";
+        setTimeout(() => {
+          submitBtn.textContent = "Send Message";
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      submitBtn.textContent = "Error! Try Again";
+      submitBtn.disabled = false;
+      submitBtn.style.transform = "";
       setTimeout(() => {
-        successMessage.classList.remove("show"); // Hide after 5s
-      }, 5000);
-    }, 1500); // Simulate form submission delay
+        submitBtn.textContent = "Send Message";
+      }, 3000);
+    }
   };
 
   // Enhance form inputs with focus/blur animations
